@@ -1,5 +1,4 @@
-import type { ModDownloadDto, ModDto } from "@deadlock-mods/shared";
-import type { VpkParsed } from "@deadlock-mods/vpk-parser";
+import type { ModDownloadDto, ModDto } from '@deadlock-mods/utils';
 
 // Individual download item type extracted from ModDownloadDto array
 export type ModDownloadItem = ModDownloadDto[number];
@@ -12,31 +11,24 @@ export type Progress = {
 };
 
 export enum ModStatus {
-  Downloading = "downloading",
-  Downloaded = "downloaded",
-  FailedToDownload = "failedToDownload",
-  Installing = "installing",
-  Installed = "installed",
-  FailedToInstall = "failedToInstall",
-  Removing = "removing",
-  Removed = "removed",
-  FailedToRemove = "failedToRemove",
-  Error = "error",
+  DOWNLOADED = 'downloaded',
+  INSTALLED = 'installed',
+  DOWNLOADING = 'downloading',
+  INSTALLING = 'installing',
+  ERROR = 'error',
 }
 
 export interface LocalMod extends ModDto {
   status: ModStatus;
-  downloadedAt?: Date | string;
+  downloadedAt?: Date;
+  installedAt?: Date;
+  path?: string;
   downloads?: ModDownloadItem[];
-  selectedDownload?: ModDownloadItem;
   installedVpks?: string[];
   installedFileTree?: ModFileTree;
-  installOrder?: number; // Order in which the mod should be loaded (lower numbers load first)
-  installedRemoteUpdatedAt?: Date | string;
-  isUpdateAvailable?: boolean;
 }
 
-export interface DownloadableMod extends Omit<LocalMod, "status"> {
+export interface DownloadableMod extends Omit<LocalMod, 'status'> {
   onStart: () => void;
   onProgress: (progress: Progress) => void;
   onComplete: (path: string) => void;
@@ -46,6 +38,7 @@ export interface DownloadableMod extends Omit<LocalMod, "status"> {
 export type InstallableMod = {
   id: string;
   name: string;
+  path: string;
   installed_vpks: string[];
   file_tree?: ModFileTree;
 };
@@ -66,55 +59,4 @@ export interface ModFileTree {
 
 export interface LocalModWithFiles extends LocalMod {
   file_tree?: ModFileTree;
-}
-
-// Types for local addon analysis
-export interface LocalAddonInfo {
-  filePath: string;
-  fileName: string;
-  vpkParsed: VpkParsed;
-  remoteId?: string; // Will be populated by API call
-  matchInfo?: {
-    certainty: number;
-    matchType: "sha256" | "contentSignature" | "fastHashAndSize" | "merkleRoot";
-    modName?: string;
-    modAuthor?: string;
-    alternativeMatches?: Array<{
-      id: string;
-      modName: string;
-      modAuthor: string;
-    }>;
-  };
-}
-
-export interface AnalyzeAddonsResult {
-  addons: LocalAddonInfo[];
-  totalCount: number;
-  errors: string[];
-}
-
-// Progress reporting for addon analysis
-export interface AddonAnalysisProgress {
-  step: "scanning" | "parsing" | "analyzing_hashes" | "complete";
-  stepDescription: string;
-  filesFound?: number;
-  currentFile?: number;
-  currentFileName?: string;
-  totalProgress: number; // 0-100
-}
-
-// Type for mod identification API response (stub for now)
-export interface ModIdentificationRequest {
-  vpkHash: string;
-  contentSignature: string;
-  merkleRoot?: string;
-  fileCount: number;
-  fileName: string;
-}
-
-export interface ModIdentificationResponse {
-  remoteId?: string;
-  confidence?: number;
-  modName?: string;
-  modAuthor?: string;
 }

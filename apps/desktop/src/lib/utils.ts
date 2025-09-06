@@ -1,13 +1,14 @@
-import { CustomSettingType } from "@deadlock-mods/shared";
+import { CustomSettingType } from '@deadlock-mods/utils';
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import type { LocalMod } from '@/types/mods';
+import { ModStatus } from '@/types/mods';
+import type { LocalSetting } from '@/types/settings';
+import { SortType } from './constants';
 
-import type { LocalMod } from "@/types/mods";
-import type { LocalSetting } from "@/types/settings";
-import { SortType } from "./constants";
-
-export { cn } from "@deadlock-mods/ui/lib/utils";
-
+export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));
 export const formatSize = (size: number) => {
-  const units = ["B", "KB", "MB", "GB"];
+  const units = ['B', 'KB', 'MB', 'GB'];
   let formattedSize = size;
   let unitIndex = 0;
   while (formattedSize >= 1024 && unitIndex < units.length - 1) {
@@ -25,16 +26,16 @@ export const getAdditionalArgs = (settings: LocalSetting[]) => {
   const additionalArgs: string[] = [];
 
   for (const setting of settings.filter(
-    (s) => s.type === CustomSettingType.LAUNCH_OPTION && s.enabled,
+    (s) => s.type === CustomSettingType.LAUNCH_OPTION && s.enabled
   )) {
-    additionalArgs.push(`${setting.key} ${setting.value || ""}`.trim());
+    additionalArgs.push(`${setting.key} ${setting.value || ''}`.trim());
   }
 
-  return additionalArgs.join(" ");
+  return additionalArgs.join(' ');
 };
 export const compareDates = (
   a: Date | number | undefined,
-  b: Date | number | undefined,
+  b: Date | number | undefined
 ) => {
   if (!a) {
     return -1;
@@ -62,40 +63,23 @@ export const sortMods = (mods: LocalMod[], sortType: SortType) => {
   });
 };
 
-const toTimestamp = (
-  value: Date | string | null | undefined,
-): number | undefined => {
-  if (!value) {
-    return undefined;
-  }
-
-  if (value instanceof Date) {
-    const timestamp = value.getTime();
-    return Number.isNaN(timestamp) ? undefined : timestamp;
-  }
-
-  const parsed = new Date(value);
-  const timestamp = parsed.getTime();
-  return Number.isNaN(timestamp) ? undefined : timestamp;
+export const isModOutdated = (mod: { remoteUpdatedAt: string | Date }) => {
+  const cutoffDate = new Date('2025-08-19');
+  const modUpdatedDate = new Date(mod.remoteUpdatedAt);
+  return modUpdatedDate < cutoffDate;
 };
 
-export const isModOutdated = (mod: {
-  remoteUpdatedAt?: Date | string | null;
-  installedRemoteUpdatedAt?: Date | string | null;
-  isUpdateAvailable?: boolean;
-}) => {
-  if (typeof mod.isUpdateAvailable === "boolean") {
-    return mod.isUpdateAvailable;
-  }
-
-  const remoteTimestamp = toTimestamp(mod.remoteUpdatedAt ?? undefined);
-  const installedTimestamp = toTimestamp(
-    mod.installedRemoteUpdatedAt ?? undefined,
-  );
-
-  if (remoteTimestamp === undefined || installedTimestamp === undefined) {
+export const hasModUpdate = (mod: LocalMod): boolean => {
+  if (!mod.installedAt) {
     return false;
   }
 
-  return remoteTimestamp > installedTimestamp;
+  const installedAt = new Date(mod.installedAt);
+  const remoteUpdatedAt = new Date(mod.remoteUpdatedAt);
+
+  return remoteUpdatedAt > installedAt;
+};
+
+export const canModUpdate = (mod: LocalMod): boolean => {
+  return mod.status === ModStatus.INSTALLED && hasModUpdate(mod);
 };
