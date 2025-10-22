@@ -1,16 +1,16 @@
-import type { ModDto } from '@deadlock-mods/utils';
-import type { StateCreator } from 'zustand';
-import { SortType } from '@/lib/constants';
-import { createLogger } from '@/lib/logger';
+import type { ModDto } from "@deadlock-mods/utils";
+import type { StateCreator } from "zustand";
+import { SortType } from "@/lib/constants";
+import { createLogger } from "@/lib/logger";
 import {
   type LocalMod,
   type ModFileTree,
   ModStatus,
   type Progress,
-} from '@/types/mods';
-import type { State } from '..';
+} from "@/types/mods";
+import type { State } from "..";
 
-const logger = createLogger('mods-state');
+const logger = createLogger("mods-state");
 
 export type ModProgress = {
   percentage: number;
@@ -32,14 +32,14 @@ export type ModsState = {
   setInstalledVpks: (
     remoteId: string,
     vpks: string[],
-    fileTree?: ModFileTree
+    fileTree?: ModFileTree,
   ) => void;
   setInstalledAt: (remoteId: string, installedAt: Date) => void;
   getModProgress: (remoteId: string) => ModProgress | undefined;
 };
 
 export const transitionModStatus = (current: ModStatus, next: ModStatus) => {
-  logger.debug('Transitioning mod status', { current, next });
+  logger.debug("Transitioning mod status", { current, next });
 
   if (current === ModStatus.DOWNLOADING && next === ModStatus.DOWNLOADED) {
     return ModStatus.DOWNLOADED;
@@ -73,7 +73,7 @@ export const transitionModStatus = (current: ModStatus, next: ModStatus) => {
 
 export const createModsSlice: StateCreator<State, [], [], ModsState> = (
   set,
-  get
+  get,
 ) => ({
   mods: [],
   modProgress: {},
@@ -149,7 +149,7 @@ export const createModsSlice: StateCreator<State, [], [], ModsState> = (
   setInstalledVpks: (
     remoteId: string,
     vpks: string[],
-    fileTree?: ModFileTree
+    fileTree?: ModFileTree,
   ) =>
     set((state) => ({
       mods: state.mods.map((mod) => ({
